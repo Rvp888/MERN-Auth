@@ -18,14 +18,12 @@ function Login() {
     try {
       e.preventDefault();
 
-      axios.defaults.withCredentials = true;
-
       if (state === "Sign Up") {
         const { data } = await axios.post(backendUrl + "/api/auth/register", {
           name,
           email,
           password,
-        });
+        }, { withCredentials: true });
 
         if (data.success) {
           setIsLoggedIn(true);
@@ -38,7 +36,7 @@ function Login() {
         const { data } = await axios.post(backendUrl + "/api/auth/login", {
           email,
           password,
-        });
+        }, { withCredentials: true });
 
         if (data.success) {
           setIsLoggedIn(true);
