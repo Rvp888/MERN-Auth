@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
-import { useContext, useRef } from "react";
+import { useContext, useEffect, useRef } from "react";
 import axios from "axios";
 import { AppContext } from "../context/AppContextContext";
 import { toast } from "react-toastify";
@@ -8,7 +8,8 @@ import { toast } from "react-toastify";
 function EmailVerify() {
   const navigate = useNavigate();
   const inputRefs = useRef([]);
-  const { backendUrl, getUserData } = useContext(AppContext);
+  const { backendUrl, getUserData, isLoggedIn, userData } =
+    useContext(AppContext);
 
   const handleInput = (e, index) => {
     if (e.target.value.length > 0 && index < inputRefs.current.length - 1) {
@@ -36,7 +37,7 @@ function EmailVerify() {
     try {
       e.preventDefault();
 
-      const otpArray = inputRefs.current.map((e) => e.value);
+      const otpArray = inputRefs.current.map((ele) => ele.value);
       const otp = otpArray.join("");
 
       axios.defaults.withCredentials = true;
@@ -55,6 +56,10 @@ function EmailVerify() {
       toast.error(error.message);
     }
   };
+
+  useEffect(() => {
+    isLoggedIn && userData && userData.isAccountVerified && navigate("/");
+  }, [isLoggedIn, userData, navigate]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-blue-200 to-purple-400">
@@ -84,7 +89,7 @@ function EmailVerify() {
                   key={index}
                   maxLength={1}
                   required
-                  ref={(e) => (inputRefs.current[index] = e)}
+                  ref={(ele) => (inputRefs.current[index] = ele)}
                   onInput={(e) => handleInput(e, index)}
                   onKeyDown={(e) => handleKeyDown(e, index)}
                   className="w-12 h-12 bg-[#333A5C] text-white text-center text-xl rounded-md"
