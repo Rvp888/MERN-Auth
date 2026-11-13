@@ -1,6 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
+import { AppContext } from "./../context/AppContextContext";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 function ResetPassword() {
   const [email, setEmail] = useState("");
@@ -8,8 +11,60 @@ function ResetPassword() {
   const [isEmailSent, setIsEmailsent] = useState(false);
   const [otp, setOtp] = useState(0);
   const [isOtpSubmitted, setIsOtpSubmitted] = useState(false);
+
   const navigate = useNavigate();
   const inputRefs = useRef([]);
+
+  const { backendUrl } = useContext(AppContext);
+
+  async function onSubmitEmail(e) {
+    e.preventDefault();
+
+    try {
+      const { data } = await axios.post(
+        backendUrl + "/api/auth/send-reset-otp",
+        { email },
+        { withCredentials: true },
+      );
+      if (data.success) {
+        toast.success(data.message);
+        setIsEmailsent(true);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
+
+  async function onSubmitOTP(e) {
+    e.preventDefault();
+
+    const otpArray = inputRefs.current.map((ele) => ele.value);
+    setOtp(otpArray.join(""));
+    setIsOtpSubmitted(true);
+  }
+
+  async function onSubmitNewPassword(e) {
+    e.preventDefault();
+
+    try {
+      const { data } = await axios.post(
+        backendUrl + "/api/auth/reset-password",
+        { email, otp, newPassword },
+        { withCredentials: true },
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        navigate("/login");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
 
   const handleInput = (e, index) => {
     if (e.target.value.length > 0 && index < inputRefs.current.length - 1) {
@@ -44,7 +99,10 @@ function ResetPassword() {
 
       {/* Enter Email Id */}
       {!isEmailSent && (
-        <form className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm">
+        <form
+          onSubmit={onSubmitEmail}
+          className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm"
+        >
           <h1 className="text-white text-2xl font-semibold text-center mb-4">
             Reset Password
           </h1>
@@ -70,7 +128,10 @@ function ResetPassword() {
 
       {/* OTP input form */}
       {!isOtpSubmitted && isEmailSent && (
-        <form className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm">
+        <form
+          onSubmit={onSubmitOTP}
+          className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm"
+        >
           <h1 className="text-white text-2xl font-semibold text-center mb-4">
             Reset password OTP
           </h1>
@@ -103,7 +164,10 @@ function ResetPassword() {
 
       {/* Enter new password */}
       {isEmailSent && isOtpSubmitted && (
-        <form className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm">
+        <form
+          onSubmit={onSubmitNewPassword}
+          className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm"
+        >
           <h1 className="text-white text-2xl font-semibold text-center mb-4">
             New Password
           </h1>
